@@ -1,8 +1,8 @@
 {
   "private": true,
-  "name": "editorconnet-node",
+  "name": "editorconnect-node",
   "version": "1.0.0",
-  "description": "Lively helpers",
+  "description": "Websocket call/reply messaging",
   "@std/esm": "cjs",
   "scripts": {
     "test": "ava test/*.test.js",

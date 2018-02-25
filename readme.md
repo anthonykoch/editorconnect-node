@@ -76,7 +76,7 @@ ws.call('order-milk', { size: 'litre' });
 - `{function} callback` - Called when a call comes in 
 
 ```js
-const { WebSocket } = require('lively');
+import { Socket } from 'editorconnect-node';
 const ws = new WebSocket(url, options);
 
 // Listens to calls coming in form the other side
