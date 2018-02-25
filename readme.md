@@ -1,8 +1,42 @@
 # editorconnect-node
 
-NodeJS websocket client and server implementing a call/reply messaging. Websocket client also works in browser.
+NodeJS websocket client and server implementing a call/reply messaging. Websocket client also works in browser. 
 
 ## API 
+
+### new Socket(url, options)
+
+Uses [ws](https://github.com/websockets/ws) as the underlying websocket implementation. The socket doesn't connect util it's `.open()` function is called.
+
+- `{string} url` - the url to connect to
+- `{object} options` - the optionsfor the socket
+
+```
+import { Socket } from 'editorconnect-node';
+
+(async () => {
+  const ws = new Socket('ws://localhost:35048', {
+    // manipulate the message before it's encoded by the parser
+    prepare: (message) => message,
+
+    // The parser for incoming messages
+    parser,
+
+    // options passed straight to the socket
+    wsOptions: {}, 
+  });
+
+  ws.on('open', function() {
+    console.log('we can now send data');
+  });
+
+  const { error } = await socket.open();
+
+  if (error) return;
+  
+  ws.call('some-event');
+})();
+```
 
 ### Sending calls
 
@@ -52,7 +86,7 @@ ws.on('lint:javascript', (data) => {
 });
 
 // You can also return a promise and the resolved value will be replied back to the caller
-ws.on('lint:javascript', async (data) => {
+ws.on('fetch:milk-items', async (data) => {
   const promise = fetch('https://store.com/items/milk').then(res => res.json());
 
   return promise;
@@ -61,7 +95,7 @@ ws.on('lint:javascript', async (data) => {
 
 // Returning multiple replies for a single call
 // Useful for when you want to send something back as it's happening
-ws.on('lint:javascript', (data, reply) => {
+ws.on('get-google', (data, reply) => {
   request('https://google.com')
     .on('data', (data) => {
       reply(data);
@@ -74,3 +108,9 @@ ws.on('lint:javascript', (data, reply) => {
 
 Because I wanted a simple implementation of something like this in the browser, node, and python (for sublime text), so I decided to write it myself.
 
+
+## Todo
+
+- Write the node version of editorconnect-sublime
+
+- Maybe just have Talkie extend node's own EventEmitter (getting rid of EventEmitter2) instead of using hub because the current way is somewhat convulated and requires rewriting a lot of the eventemitter2 functions anyway. Not really digging extending eventemitter2 because of the stuff it comes with is not a part of the Talkie api.

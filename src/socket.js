@@ -60,18 +60,18 @@ export default class Socket extends Talkie {
   constructor(url, {
     prepare=prepareMessage,
     parser=new MessageParser(MessageParser.END_OF_MESSAGE),
-    ws: wsOptions,
-    retry,
+    wsOptions,
+    // retry, TODO
   }={}) {
     super();
     this.setParser(parser)
       .setUrl(url)
       .setPrepare(prepare);
 
-    this.retry = Number(retry);
+    // this.retry = Number(retry);
+    // this.failedConnection = false;
     this.socket = null;
     this.wsOptions = Object(wsOptions);
-    this.failedConnection = false;
   }
 
   get connecting() {
@@ -139,7 +139,7 @@ export default class Socket extends Talkie {
       const onClose = (code, reason) => {
         // console.log('closed');
         removeListeners();
-        reject({ error, code, reason });
+        resolve({ error, code, reason });
         this.hub.emit('this:close', ws, { error, code, reason });
 
         // TODO
@@ -149,7 +149,7 @@ export default class Socket extends Talkie {
 
       const onError = (error) => {
         if (error.code === 'ECONNREFUSED') {
-          this.failedConnection = true;
+          // this.failedConnection = true;
           this.hub.emit('this:connect-failure');
         }
 

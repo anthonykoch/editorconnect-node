@@ -239,3 +239,4 @@ export default class Talkie {
 
 Talkie.DEFAULT_DONE_TIMEOUT = 2000;
 Talkie.DEFAULT_REPLY_TIMEOUT = 2000;
+Talkie.Messages = Messages;
