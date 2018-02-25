@@ -1,6 +1,6 @@
 # editorconnect-node
 
-NodeJS websocket client and server implementing a call/reply messaging. Websocket client also works in browser. 
+Node client and server (todo) implementing a call/reply messaging. The client also works in browser and is purposed for connecting to [editor-connect](https://github.com/anthonykoch/editorconnect-sublime).
 
 ## API 
 
