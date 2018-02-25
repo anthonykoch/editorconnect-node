@@ -45,33 +45,32 @@ ws.call('order-milk', { size: 'litre' });
 const { WebSocket } = require('lively');
 const ws = new WebSocket(url, options);
 
-// To listen to calls coming in form the other side
-ws.on('lint:javascript', (data, reply, done) => {
-  const output = await lint(data.input);
-
-  // Here we can return some data
-  reply({ output });
-  done();
+// Listens to calls coming in form the other side
+ws.on('lint:javascript', (data) => {
+  // Reply with some data
+  return lint(data.input);
 });
 
-// If you return a promise, done will be called for you
-ws.on('lint:javascript', async (data, reply) => {
-  const errors = await lint(data.input);
+// You can also return a promise and the resolved value will be replied back to the caller
+ws.on('lint:javascript', async (data) => {
+  const promise = fetch('https://store.com/items/milk').then(res => res.json());
 
-  // Done is called automatically when returning a promise
+  return promise;
+});
 
-  return errors;
+
+// Returning multiple replies for a single call
+// Useful for when you want to send something back as it's happening
+ws.on('lint:javascript', (data, reply) => {
+  request('https://google.com')
+    .on('data', (data) => {
+      reply(data);
+    });
 });
 ```
 
 
 ### Why?
 
-Because I wanted a simple implementation of something like this in the browser, node, and python, so I decided to write it myself.
-
-
-### Todo
-
-- [ ] Moar tests
-
+Because I wanted a simple implementation of something like this in the browser, node, and python (for sublime text), so I decided to write it myself.
 

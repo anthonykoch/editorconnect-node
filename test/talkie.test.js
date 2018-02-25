@@ -4,22 +4,27 @@ import test from 'ava';
 
 import sinon from 'sinon';
 
-import Talkie from '../src/talkie';
+import Talkie, { validate } from '../src/talkie';
 import * as Messages from '../src/messages';
 
-const createTalkie = (...args) => {
-  return new Talkie(...args);
-};
+test('validate(message) - validates messages conform to api', t => {
+  t.false(validate(null));
+  t.false(validate({ type: 'lime' }));
+  t.false(validate({ type: 'call' }));
+  t.false(validate({ type: 'reply' }));
+
+  t.true(validate({ type: 'call', event: 'order-milk' }));
+});
 
 test('talkie.send(data) - throws an error if not implemented', t => {
-  const talkie = createTalkie();
+  const talkie = new Talkie();
   t.throws(() => talkie.send(), /not implemented/);
 });
 
 test('talkie - has event emitter attributes', t => {
   t.plan(4);
 
-  const talkie = createTalkie();
+  const talkie = new Talkie();
 
   talkie.api.on('coconut', () => t.pass('api coconut event fires'));
   talkie.hub.on('coconut', () => t.pass('hub coconut event fires'));
@@ -163,4 +168,136 @@ test('talkie.call(event, payload) - await call response with multiple parts', as
   const promise = coconut.call();
 
   await t.throws(promise, /timeout until first reply has been exceeded/);
+});
+
+test('.on() allows replying to incoming call', async t => {
+  t.plan(14);
+
+  class Coconut extends Talkie {}
+
+  const sendSpy = sinon.spy();
+  const coconut = new Coconut();
+  const onReplySpy = sinon.spy();
+  const event = 'order-milk';
+  const payload = { size: 'litre' };
+  const expected = { id: '123', total: '$123.00' };
+
+  coconut.send = sendSpy;
+
+  coconut.on(event, (data, reply) => {
+    return reply(expected);
+  });
+
+  coconut.api.on('send:reply', onReplySpy);
+
+  await coconut.dispatch([Messages.call(event, payload)]);
+
+  t.true(onReplySpy.calledTwice, 'api event is called twice');
+  t.true(sendSpy.calledTwice, 'send is called for each reply');
+
+  [sendSpy, onReplySpy].forEach(spy => {
+    const firstReply = sendSpy.firstCall.args[0];
+    const secondReply = sendSpy.secondCall.args[0];
+
+    t.deepEqual(firstReply.payload, expected);
+    t.false(firstReply.done);
+    t.is(firstReply.part, 0);
+
+    t.is(secondReply.part, 1, 'done is the second part');
+    t.true(secondReply.done, 'done is automatically replied');
+    t.is(secondReply.payload, null, 'done resulting value is null');
+  });
+});
+
+test('.on() allows returning promise and replying', async t => {
+  t.plan(14);
+
+  class Coconut extends Talkie {}
+
+  const sendSpy = sinon.spy();
+  const coconut = new Coconut();
+  const onReplySpy = sinon.spy();
+  const event = 'order-milk';
+  const payload = { size: 'litre' };
+  const firstPayload =  { meaningfuldata: 'doge' };
+  const secondPayload = { id: '123', total: '$123.00' };
+
+  coconut.send = sendSpy;
+
+  coconut.on(event, (data, reply) => {
+    reply(firstPayload);
+    return Promise.resolve(secondPayload);
+  });
+
+  coconut.api.on('send:reply', onReplySpy);
+
+  await coconut.dispatch([Messages.call(event, payload)]);
+
+  t.true(onReplySpy.calledTwice, 'api event is called twice');
+  t.true(sendSpy.calledTwice, 'send is called for each reply');
+
+  [sendSpy, onReplySpy].forEach(spy => {
+    const firstReply = spy.firstCall.args[0];
+    const secondReply = spy.secondCall.args[0];
+
+    t.deepEqual(firstReply.payload, firstPayload);
+    t.false(firstReply.done);
+    t.is(firstReply.part, 0);
+
+    t.is(secondReply.part, 1, 'done is the second part');
+    t.true(secondReply.done, 'done is automatically replied');
+    t.is(secondReply.payload, secondPayload, 'done resulting value is null');
+  });
+});
+
+test('.off() removes a listener', async t => {
+  t.plan(3);
+
+  class Coconut extends Talkie { send() {} }
+
+  const listenerSpy = sinon.spy();
+  const coconut = new Coconut();
+  const incomingPayload = { hey: 'itsme' };
+  const event = 'lime';
+
+  coconut.on(event, listenerSpy);
+
+  const incomingCall = Messages.call(event, incomingPayload);
+
+  await coconut.dispatch([incomingCall]);
+
+  t.true(listenerSpy.calledOnce);
+  t.deepEqual(listenerSpy.firstCall.args[0], incomingPayload);
+
+  coconut.off(event, listenerSpy);
+
+  await coconut.dispatch([Messages.call(event, incomingPayload)]);
+
+  t.true(listenerSpy.calledOnce, '.off() removed event listener');
+});
+
+test('.off() removes a listener', async t => {
+  t.plan(3);
+
+  class Coconut extends Talkie { send() {} }
+
+  const listenerSpy = sinon.spy();
+  const coconut = new Coconut();
+  const incomingPayload = { hey: 'itsme' };
+  const event = 'lime';
+
+  coconut.on(event, listenerSpy);
+
+  const incomingCall = Messages.call(event, incomingPayload);
+
+  await coconut.dispatch([incomingCall]);
+
+  t.true(listenerSpy.calledOnce);
+  t.deepEqual(listenerSpy.firstCall.args[0], incomingPayload);
+
+  coconut.off(event, listenerSpy);
+
+  await coconut.dispatch([Messages.call(event, incomingPayload)]);
+
+  t.true(listenerSpy.calledOnce, '.off() removed event listener');
 });

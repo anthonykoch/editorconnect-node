@@ -45,8 +45,8 @@ const createServer = (timeout=2000) => {
   };
 };
 
-test('socket.open() - connects to a server', async t => {
-  const { wss, close, getConnections } = createServer();
+test.serial('socket.open() - connects to a server', async t => {
+  const { close, getConnections } = createServer();
 
   const socket = new Socket(URL, { autoConnect: false });
 
@@ -56,7 +56,7 @@ test('socket.open() - connects to a server', async t => {
   await close();
 });
 
-test('socket.send(data) - sends data to a server', t => {
+test.serial('socket.send(data) - sends data to a server', t => {
   const { wss, close, getConnections } = createServer();
 
   const socket = new Socket(URL);
@@ -83,22 +83,22 @@ test('socket.send(data) - sends data to a server', t => {
   });
 });
 
-// test('socket.parser.encode(data) - encodes data', t => {
-//   const socket = new Socket(URL);
+test.serial('socket.parser.encode(data) - encodes data', t => {
+  const socket = new Socket(URL);
 
-//   t.equal(socket.parser.encode('coconut water'), '"coconut water"\n');
-//   t.equal(socket.parser.encode('123'), '"123"\n');
-//   t.equal(socket.parser.encode({ coconut: true }), '{"coconut":true}\n');
-//   t.equal(socket.parser.encode(null), 'null\n');
-//   t.equal(socket.parser.encode([]), '[]\n');
-// });
+  t.is(socket.parser.encode('coconut water'), '"coconut water"\n');
+  t.is(socket.parser.encode('123'), '"123"\n');
+  t.is(socket.parser.encode({ coconut: true }), '{"coconut":true}\n');
+  t.is(socket.parser.encode(null), 'null\n');
+  t.is(socket.parser.encode([]), '[]\n');
+});
 
-// test('socket.parser.decode(data) - decodes data', t => {
-//   const socket = new Socket(URL);
+test('socket.parser.decode(data) - decodes data', t => {
+  const socket = new Socket(URL);
 
-//   t.deepEqual(socket.parser.decode('"coconut water"\n'), ['coconut water']);
-//   t.deepEqual(socket.parser.decode('"123"\n'), ['123']);
-//   t.deepEqual(socket.parser.decode('{"coconut": true}\n'), [{ coconut: true }]);
-//   t.deepEqual(socket.parser.decode('null\n'), [null]);
-//   t.deepEqual(socket.parser.decode('[]\n'), [[]]);
-// });
+  t.deepEqual(socket.parser.decode('"coconut water"\n'), ['coconut water']);
+  t.deepEqual(socket.parser.decode('"123"\n'), ['123']);
+  t.deepEqual(socket.parser.decode('{"coconut": true}\n'), [{ coconut: true }]);
+  t.deepEqual(socket.parser.decode('null\n'), [null]);
+  t.deepEqual(socket.parser.decode('[]\n'), [[]]);
+});

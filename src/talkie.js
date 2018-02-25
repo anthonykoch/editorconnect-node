@@ -58,51 +58,85 @@ export default class Talkie {
   }
 
   /**
-   * Dispatches events for incoming and outgoing messages
-   * @param  {Array<Message>} messages [description]
-   * @return {[type]}          [description]
+   * Dispatches events for incoming and outgoing messages.
+   * Resolves when all messages have been dispatched. This includes:
+   * - When all done replies have been sent.
+   * - When all incoming replies have been emitted (which happens synchronously anyway)
+   *
+   * @public
+   * @param  {Array<Message>} messages
+   * @return {Promise}
    */
   dispatch(messages) {
-    for (const message of messages) {
+    const promises = messages.map(message => {
       assert(validate(message), `message does not conform to api, got ${JSON.stringify(message)}`);
 
       this.hub.emit('this:message', message);
 
-      let part = 0;
-      let isDone = false;
-
-      const reply = (payload) => {
-        assert(!isDone, 'reply called after done');
-        const origin = message;
-        const replyMessage = Messages.reply(payload, origin, part, isDone);
-
-        this.send(replyMessage);
-        part += 1;
-      };
-
-      const done = (payload) => {
-        assert(!isDone, 'done called too many times');
-
-        const origin = message;
-        const replyMessage = Messages.reply(payload, origin, part, true);
-
-        this.send(replyMessage);
-        isDone = true;
-      };
-
-      switch (message.type) {
-        case 'call':
-          this.api.emit('receive:call', message);
-          this.hub.emit(message.event, message.payload, reply, done);
-          break;
-        case 'reply':
-          this.api.emit('receive:reply', message);
-          this.api.emit(`reply:${message.origin.id}`, message);
-          break;
-        default:
-          break;
+      if (message.type === 'call') {
+        return this.handleIncomingCall(message);
       }
+
+      return this.handleIncomingReply(message);
+    });
+
+    return Promise.all(promises);
+  }
+
+  /**
+   * Handles dispatching incoming calls to their event handlers.
+   * Returns a promise when all handlers have returned data.
+   *
+   * @private
+   * @param  {Object} message
+   * @return {Promise} returns a promise for testing purposes
+   */
+  handleIncomingCall(message) {
+    this.api.emit('receive:call', message);
+    const listeners = this.hub.listeners(message.event);
+
+    if (listeners.length === 0) {
+      return;
     }
+
+    let part = 0;
+
+    const reply = (payload) => {
+      const origin = message;
+      const replyMessage = Messages.reply(payload, message, part, false);
+      this.send(replyMessage);
+      this.api.emit('send:reply', replyMessage);
+      part += 1;
+    };
+
+    const promises = listeners.map(listener => {
+      const value = listener(message.payload, reply);
+      const promise = Promise.resolve(value);
+
+      return promise.then((value) => {
+        const replyMessage = Messages.reply(value, message, part, true);
+
+        this.send(replyMessage);
+        this.api.emit('send:reply', replyMessage);
+      });
+    });
+
+    return Promise.all(promises);
+  }
+
+  /**
+   * Dispatches replies to the talkie.api listeners, which fires the onReply and
+   * onDone callbacks, as well as causes the talkie.call() promise to resolve.
+   *
+   * @private
+   * @param  {Object} message
+   * @return {Promise} returns a promise for testing purposes
+   */
+  handleIncomingReply(message) {
+    this.api.emit('receive:reply', message);
+    this.api.emit(`reply:${message.origin.id}`, message);
+
+    return Promise.resolve();
   }
 
   /**
@@ -177,14 +211,6 @@ export default class Talkie {
     });
   }
 
-  createCallbackWrapper(callback) {
-    return cb;
-  }
-
-  getCallbackWrapper(callback) {
-    return this.callbacks.get(callback);
-  }
-
   /**
    * Removes an event listener
    * @param  {String}   name
@@ -192,9 +218,6 @@ export default class Talkie {
    * @public
    */
   off(name, callback) {
-    // TODO
-    // const cb = this.getCallbackWrapper(callback);
-
     this.hub.off(name, callback);
 
     return this;
