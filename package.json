@@ -1,0 +1,33 @@
+{
+  "private": true,
+  "name": "editorconnet-node",
+  "version": "1.0.0",
+  "description": "Lively helpers",
+  "@std/esm": "cjs",
+  "scripts": {
+    "test": "ava test/*.test.js --serial",
+    "test:watch": "yarn run test --watch",
+    "cov": "nyc --reporter=lcov --require @std/esm yarn run test"
+  },
+  "ava": {
+    "require": [
+      "@std/esm"
+    ]
+  },
+  "dependencies": {
+    "cuid": "2.1.0",
+    "eventemitter2": "5.0.1",
+    "lodash": "4.17.4",
+    "sinon": "4.3.0",
+    "ws": "4.0.0"
+  },
+  "devDependencies": {
+    "@std/esm": "0.22.0",
+    "ava": "^0.25.0",
+    "eslint": "4.18.1",
+    "nyc": "^11.4.1",
+    "yargs": "8.0.2"
+  },
+  "author": "Anthony Koch",
+  "license": "MIT"
+}
