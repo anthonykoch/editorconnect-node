@@ -132,7 +132,7 @@ export default class Socket extends Talkie {
 
       const onOpen = () => {
         // console.log('opened');
-        resolve({});
+        resolve({ error: null, code: null, reason: null });
         this.hub.emit('this:open');
       };
 
