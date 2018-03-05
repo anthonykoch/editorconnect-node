@@ -3,8 +3,9 @@
   "name": "editorconnect-node",
   "version": "1.0.0",
   "description": "Websocket call/reply messaging",
-  "main": "./lib/index.js",
+  "main": "./dist/index.js",
   "scripts": {
+    "build": "npx babel lib --out-dir dist",
     "test": "ava test/*.test.js",
     "test:watch": "yarn run test --watch",
     "cov": "nyc --reporter=lcov ava test/*.test.js",
@@ -19,12 +20,13 @@
     "cuid": "2.1.0",
     "eventemitter2": "5.0.1",
     "lodash": "4.17.4",
-    "sinon": "4.3.0",
     "ws": "4.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.0.0-beta.40",
+    "@babel/cli": "^7.0.0-beta.40",
     "@babel/plugin-proposal-optional-chaining": "7.0.0-beta.40",
+    "sinon": "4.3.0",
     "@babel/preset-env": "7.0.0-beta.40",
     "@babel/register": "7.0.0-beta.40",
     "ava": "0.25.0",
