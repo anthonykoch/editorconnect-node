@@ -92,7 +92,6 @@ ws.on('fetch:milk-items', async (data) => {
   return promise;
 });
 
-
 // Returning multiple replies for a single call
 // Useful for when you want to send something back as it's happening
 ws.on('get-google', (data, reply) => {
@@ -112,3 +111,5 @@ Because I wanted a simple implementation of something like this in the browser, 
 ## Todo
 
 - Write the node version of editorconnect-sublime
+- Some ping pongs
+- Handshake timeout
