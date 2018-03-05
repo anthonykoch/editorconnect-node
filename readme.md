@@ -112,5 +112,3 @@ Because I wanted a simple implementation of something like this in the browser, 
 ## Todo
 
 - Write the node version of editorconnect-sublime
-
-- Maybe just have Talkie extend node's own EventEmitter (getting rid of EventEmitter2) instead of using hub because the current way is somewhat convulated and requires rewriting a lot of the eventemitter2 functions anyway. Not really digging extending eventemitter2 because of the stuff it comes with is not a part of the Talkie api.

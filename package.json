@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "description": "Websocket call/reply messaging",
   "@std/esm": "cjs",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "ava test/*.test.js",
     "test:watch": "yarn run test --watch",
@@ -12,7 +13,7 @@
   },
   "ava": {
     "require": [
-      "@std/esm"
+      "@babel/register"
     ]
   },
   "dependencies": {
@@ -23,9 +24,13 @@
     "ws": "4.0.0"
   },
   "devDependencies": {
-    "@std/esm": "0.22.0",
+    "@babel/core": "7.0.0-beta.40",
+    "@babel/preset-env": "7.0.0-beta.40",
+    "@babel/plugin-proposal-optional-chaining": "7.0.0-beta.40",
+    "@babel/register": "^7.0.0-beta.40",
     "ava": "0.25.0",
-    "eslint": "4.18.1",
+    "babel-eslint": "8.0.2",
+    "eslint": "4.11.0",
     "nyc": "11.4.1",
     "yargs": "8.0.2"
   },
