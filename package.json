@@ -3,12 +3,11 @@
   "name": "editorconnect-node",
   "version": "1.0.0",
   "description": "Websocket call/reply messaging",
-  "@std/esm": "cjs",
   "main": "./lib/index.js",
   "scripts": {
     "test": "ava test/*.test.js",
     "test:watch": "yarn run test --watch",
-    "cov": "nyc --reporter=lcov --require @std/esm yarn run test",
+    "cov": "nyc --reporter=lcov ava test/*.test.js",
     "report": "nyc --require @std/esm yarn run test"
   },
   "ava": {
@@ -25,13 +24,13 @@
   },
   "devDependencies": {
     "@babel/core": "7.0.0-beta.40",
-    "@babel/preset-env": "7.0.0-beta.40",
     "@babel/plugin-proposal-optional-chaining": "7.0.0-beta.40",
-    "@babel/register": "^7.0.0-beta.40",
+    "@babel/preset-env": "7.0.0-beta.40",
+    "@babel/register": "7.0.0-beta.40",
     "ava": "0.25.0",
     "babel-eslint": "8.0.2",
     "eslint": "4.11.0",
-    "nyc": "11.4.1",
+    "nyc": "11.5.0",
     "yargs": "8.0.2"
   },
   "author": "Anthony Koch",
