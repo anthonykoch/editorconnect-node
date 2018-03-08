@@ -8,7 +8,7 @@
     "build": "npx babel lib --out-dir dist",
     "test": "ava test/*.test.js",
     "test:watch": "yarn run test --watch",
-    "cov": "nyc --reporter=lcov ava test/*.test.js",
+    "cov": "nyc --reporter=lcov ava test/*.test.js"
   },
   "ava": {
     "require": [
