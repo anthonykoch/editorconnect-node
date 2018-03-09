@@ -77,7 +77,7 @@ ws.call('order-milk', { size: 'litre' });
 
 ```js
 import { Socket } from 'editorconnect-node';
-const ws = new WebSocket(url, options);
+const ws = new Socket(url, options);
 
 // Listens to calls coming in form the other side
 ws.on('lint:javascript', (data) => {
