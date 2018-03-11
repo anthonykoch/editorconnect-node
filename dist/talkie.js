@@ -56,7 +56,6 @@ function (_EventEmitter) {
       delimiter: ':',
       wildcard: true
     });
-    _this.callbacks = new Map();
 
     var onOpen = function onOpen() {
       return _this.send(Messages.handshake(null, _this.origin));
@@ -199,6 +198,7 @@ function (_EventEmitter) {
 
       // TODO: Add limit option that stops listening to replies after n replies
       return new Promise(function (resolve, reject) {
+        (0, _assert.default)(_this4.origin && _typeof(_this4.origin) === 'object', "Talkie property \"origin\" should be an object, got ".concat(_this4.origin));
         var parts = [];
         var replyTimeoutId = null;
         var doneTimeoutId = null;
