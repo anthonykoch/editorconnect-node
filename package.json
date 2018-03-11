@@ -5,6 +5,7 @@
   "description": "Websocket call/reply messaging",
   "main": "./dist/index.js",
   "scripts": {
+    "lint": "eslint --quiet -c .eslintrc.yml **/*.js ",
     "build": "npx babel lib --out-dir dist",
     "test": "ava test/*.test.js",
     "test:watch": "yarn run test --watch",
@@ -19,6 +20,7 @@
     "cuid": "2.1.0",
     "eventemitter2": "5.0.1",
     "lodash": "4.17.4",
+    "loglevel": "^1.6.1",
     "ws": "4.0.0"
   },
   "devDependencies": {
