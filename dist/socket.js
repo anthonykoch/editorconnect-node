@@ -177,7 +177,7 @@ function (_Talkie) {
       (0, _assert.default)(!this.connected && !this.connecting, 'connection must be closed before starting a new one');
       var options = Object.assign({}, this.wsOptions, {});
       var ws = this.socket = new _ws.default(this.url, options);
-      return new Promise(function (resolve, reject) {
+      return new Promise(function (resolve) {
         var error = null;
 
         var onOpen = function onOpen() {

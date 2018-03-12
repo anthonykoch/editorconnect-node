@@ -226,8 +226,8 @@ test('.on() allows replying to incoming call', async t => {
   t.true(sendSpy.calledTwice, 'send is called for each reply');
 
   [sendSpy, onReplySpy].forEach(spy => {
-    const firstReply = sendSpy.firstCall.args[0];
-    const secondReply = sendSpy.secondCall.args[0];
+    const firstReply = spy.firstCall.args[0];
+    const secondReply = spy.secondCall.args[0];
 
     t.deepEqual(firstReply.payload, expected);
     t.false(firstReply.done);
