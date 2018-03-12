@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/anthonykoch/editorconnect-node.svg?branch=master)](https://travis-ci.org/anthonykoch/editorconnect-node)
+[![codecov](https://codecov.io/gh/anthonykoch/editorconnect-node/branch/master/graph/badge.svg)](https://codecov.io/gh/anthonykoch/editorconnect-node)
 
 # editorconnect-node
 
