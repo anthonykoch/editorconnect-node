@@ -12,5 +12,4 @@ script:
   - npm run cov
   - npm run lint
 after_script:
-  - ls coverage
   - "cat ./coverage/lcov.info | codecov"
