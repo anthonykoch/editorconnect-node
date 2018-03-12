@@ -62,7 +62,7 @@ test.serial('Socket() - throws when origin is not passed', async t => {
 });
 
 test.serial('socket.open() - resolves error when handshake times out', async t => {
-  const { close, getConnections } = createServer({ handshake: false });
+  const { close } = createServer({ handshake: false });
 
   const socket = new Socket(URL, { origin: OUTGOING_ORIGIN, autoConnect: false });
 
