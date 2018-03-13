@@ -10,7 +10,7 @@ import * as Messages from '../lib/messages';
 const INCOMING_ORIGIN = { id: 'incoming' };
 const OUTGOING_ORIGIN = { id: 'outgoing' };
 
-test('validate(message) - validates messages conform to api', t => {
+test.skip('validate(message) - validates messages conform to api', t => {
   t.false(Messages.isValid(null));
 
   t.false(Messages.isValid({ type: 'lime' }));
