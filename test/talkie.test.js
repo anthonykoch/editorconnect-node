@@ -10,13 +10,30 @@ import * as Messages from '../lib/messages';
 const INCOMING_ORIGIN = { id: 'incoming' };
 const OUTGOING_ORIGIN = { id: 'outgoing' };
 
-test.skip('validate(message) - validates messages conform to api', t => {
+test('validate(message) - validates messages conform to api', t => {
   t.false(Messages.isValid(null));
+
   t.false(Messages.isValid({ type: 'lime' }));
   t.false(Messages.isValid({ type: 'call' }));
   t.false(Messages.isValid({ type: 'reply' }));
+  t.false(Messages.isValid({ type: 'handshake' }));
+  t.false(Messages.isValid({ type: 'handshake-accept' }));
 
-  t.true(Messages.isValid({ type: 'call', event: 'order-milk' }));
+  t.true(Messages.isValid(Messages.call('exec', {}, OUTGOING_ORIGIN)), 'created call is valid');
+
+  t.true(
+      Messages.isValid(Messages.reply(
+        {},
+        Messages.call('exec', {}, INCOMING_ORIGIN),
+        0,
+        false,
+        OUTGOING_ORIGIN
+      ))
+    );
+
+  t.true(Messages.isValid(Messages.handshake({}, OUTGOING_ORIGIN)));
+
+  t.true(Messages.isValid(Messages.handshakeAccept(null, INCOMING_ORIGIN, OUTGOING_ORIGIN)));
 });
 
 test('talkie.send(data) - throws an error if not implemented', t => {
