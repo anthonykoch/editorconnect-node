@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/anthonykoch/editorconnect-node.svg?branch=master)](https://travis-ci.org/anthonykoch/editorconnect-node)
 [![codecov](https://codecov.io/gh/anthonykoch/editorconnect-node/branch/master/graph/badge.svg)](https://codecov.io/gh/anthonykoch/editorconnect-node)
-
 # editorconnect-node
 
 Node client and server (todo) implementing a call/reply messaging. The client also works in browser and is purposed for connecting to [editor-connect](https://github.com/anthonykoch/editorconnect-sublime).

@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.isValid = exports.isHandshakeAccept = exports.handshakeAccept = exports.isHandshake = exports.handshake = exports.isCall = exports.call = exports.isReply = exports.reply = exports.createCallIncrementalId = exports.createCallReplyIncrementalId = void 0;
+exports.isValid = exports.isPong = exports.pong = exports.isPing = exports.ping = exports.isHandshakeAccept = exports.handshakeAccept = exports.isHandshake = exports.handshake = exports.isCall = exports.call = exports.isReply = exports.reply = exports.createCallIncrementalId = exports.createCallReplyIncrementalId = void 0;
 
 var _cuid = _interopRequireDefault(require("cuid"));
 
@@ -54,7 +54,7 @@ var reply = function reply(payload, call, part, isDone, origin) {
       id: origin.id
     },
     payload: payload === undefined ? null : payload
-  }; // {'part': 1, 'payload': {'finish': True}, 'type': 'reply', 'to': {'iid': 1, 'id': 'cjecrqj0x0002kvyqeihp91v2', 'event': 'lively-javascript:expressions'}, 'iid': 1, 'origin': {'id': 'lively-javascript-runtime-85996'}, 'id': 'cjecrqj1s0002csyq7fyejm2m', 'done': True}
+  };
 };
 
 exports.reply = reply;
@@ -62,10 +62,10 @@ exports.reply = reply;
 var isReply = function isReply(message) {
   var _message$origin, _message$to, _message$to2;
 
-  return message && isFilled(message.id) && (0, _isLength.default)(message.iid) && // eslint-disable-next-line no-undef
+  return !!(message && isFilled(message.id) && (0, _isLength.default)(message.iid) && // eslint-disable-next-line no-undef
   isFilled(message === null || message === void 0 ? void 0 : (_message$origin = message.origin) === null || _message$origin === void 0 ? void 0 : _message$origin.id) && (0, _isLength.default)(message.part) && typeof message.done === 'boolean' && // eslint-disable-next-line no-undef
   isFilled(message === null || message === void 0 ? void 0 : (_message$to = message.to) === null || _message$to === void 0 ? void 0 : _message$to.id) && // eslint-disable-next-line no-undef
-  isFilled(message === null || message === void 0 ? void 0 : (_message$to2 = message.to) === null || _message$to2 === void 0 ? void 0 : _message$to2.event);
+  isFilled(message === null || message === void 0 ? void 0 : (_message$to2 = message.to) === null || _message$to2 === void 0 ? void 0 : _message$to2.event));
 };
 /**
  * Creates a call message.
@@ -95,8 +95,8 @@ exports.call = call;
 var isCall = function isCall(message) {
   var _message$origin2;
 
-  return message && message.type === 'call' && isFilled(message.id) && (0, _isLength.default)(message.iid) && isFilled(message.event) && message.hasOwnProperty('payload') && // eslint-disable-next-line no-undef
-  isFilled((_message$origin2 = message.origin) === null || _message$origin2 === void 0 ? void 0 : _message$origin2.id);
+  return !!(message && message.type === 'call' && isFilled(message.id) && (0, _isLength.default)(message.iid) && isFilled(message.event) && message.hasOwnProperty('payload') && // eslint-disable-next-line no-undef
+  isFilled((_message$origin2 = message.origin) === null || _message$origin2 === void 0 ? void 0 : _message$origin2.id));
 };
 /**
  * Creates a handshake message, which is used when a client connects to the server.
@@ -125,8 +125,8 @@ exports.handshake = handshake;
 var isHandshake = function isHandshake(message) {
   var _message$origin3;
 
-  return message && message.type === 'handshake' && isFilled(message.id) && // eslint-disable-next-line no-undef
-  isFilled((_message$origin3 = message.origin) === null || _message$origin3 === void 0 ? void 0 : _message$origin3.id) && message.hasOwnProperty('payload');
+  return !!(message && message.type === 'handshake' && isFilled(message.id) && // eslint-disable-next-line no-undef
+  isFilled((_message$origin3 = message.origin) === null || _message$origin3 === void 0 ? void 0 : _message$origin3.id) && message.hasOwnProperty('payload'));
 };
 /**
  * Creates a handshake accept.
@@ -156,9 +156,37 @@ exports.handshakeAccept = handshakeAccept;
 var isHandshakeAccept = function isHandshakeAccept(message) {
   var _message$origin4, _message$to3;
 
-  return message && message.type === 'handshake-accept' && isFilled(message.id) && // eslint-disable-next-line no-undef
+  return !!(message && message.type === 'handshake-accept' && isFilled(message.id) && // eslint-disable-next-line no-undef
   isFilled((_message$origin4 = message.origin) === null || _message$origin4 === void 0 ? void 0 : _message$origin4.id) && // eslint-disable-next-line no-undef
-  isFilled((_message$to3 = message.to) === null || _message$to3 === void 0 ? void 0 : _message$to3.id) && message.hasOwnProperty('payload');
+  isFilled((_message$to3 = message.to) === null || _message$to3 === void 0 ? void 0 : _message$to3.id) && message.hasOwnProperty('payload'));
+};
+
+exports.isHandshakeAccept = isHandshakeAccept;
+
+var ping = function ping() {
+  return {
+    type: 'ping'
+  };
+};
+
+exports.ping = ping;
+
+var isPing = function isPing(message) {
+  return !!(message && message.type === 'ping');
+};
+
+exports.isPing = isPing;
+
+var pong = function pong() {
+  return {
+    type: 'pong'
+  };
+};
+
+exports.pong = pong;
+
+var isPong = function isPong(message) {
+  return !!(message && message.type === 'pong');
 };
 /**
  * Returns true if the message conforms to the api.
@@ -167,10 +195,10 @@ var isHandshakeAccept = function isHandshakeAccept(message) {
  */
 
 
-exports.isHandshakeAccept = isHandshakeAccept;
+exports.isPong = isPong;
 
 var isValid = function isValid(message) {
-  return isReply(message) || isCall(message) || isHandshake(message) || isHandshakeAccept(message);
+  return !!(isReply(message) || isCall(message) || isHandshake(message) || isHandshakeAccept(message) || isPing(message) || isPong(message));
 };
 
 exports.isValid = isValid;

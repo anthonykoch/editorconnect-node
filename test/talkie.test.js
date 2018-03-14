@@ -10,6 +10,8 @@ import * as Messages from '../lib/messages';
 const INCOMING_ORIGIN = { id: 'incoming' };
 const OUTGOING_ORIGIN = { id: 'outgoing' };
 
+const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
+
 test.skip('validate(message) - validates messages conform to api', t => {
   t.false(Messages.isValid(null));
 
@@ -34,6 +36,8 @@ test.skip('validate(message) - validates messages conform to api', t => {
   t.true(Messages.isValid(Messages.handshake({}, OUTGOING_ORIGIN)));
 
   t.true(Messages.isValid(Messages.handshakeAccept(null, INCOMING_ORIGIN, OUTGOING_ORIGIN)));
+  t.true(Messages.isValid(Messages.ping()));
+  t.true(Messages.isValid(Messages.pong()));
 });
 
 test('talkie.send(data) - throws an error if not implemented', t => {
@@ -368,4 +372,64 @@ test('.off() removes a listener', async t => {
   await coconut.dispatch([Messages.call(event, incomingPayload, INCOMING_ORIGIN)]);
 
   t.true(listenerSpy.calledOnce, '.off() removed event listener');
+});
+
+test.serial('Talkie.startPings() - starts pings and waits for the oher side to response within time', async t => {
+  t.plan(2);
+
+  class Coconut extends Talkie {
+
+    get origin() {
+      return OUTGOING_ORIGIN;
+    }
+
+    send(message) {
+      if (Messages.isPing(message)) {
+        setTimeout(() => this.dispatch([Messages.pong()]), 0);
+      }
+    }
+
+  }
+
+  const coconut = new Coconut({ pingFrequency: 220, });
+  const failedPingSpy = sinon.spy();
+  const onPongSpy = sinon.spy();
+
+  coconut.on('this:pong', onPongSpy);
+  coconut.on('this:failed-ping', failedPingSpy);
+  coconut.startPings();
+
+  await sleep(1000);
+
+  t.is(failedPingSpy.callCount, 0, 'talkie has received pongs');
+  coconut.stopPings();
+  t.is(onPongSpy.callCount, 4, 'pongs were emitted');
+});
+
+test.serial('Talkie.startPings() - emits failed-ping when no pongs are received', async t => {
+  t.plan(2);
+
+  class Coconut extends Talkie {
+
+    get origin() {
+      return OUTGOING_ORIGIN;
+    }
+
+    send() {}
+
+  }
+
+  const coconut = new Coconut({ pingFrequency: 220, });
+  const failedPingSpy = sinon.spy();
+  const onPongSpy = sinon.spy();
+
+  coconut.on('this:pong', onPongSpy);
+  coconut.on('this:failed-ping', failedPingSpy);
+  coconut.startPings();
+
+  await sleep(1000);
+
+  t.is(failedPingSpy.callCount, 4, 'talkie has not received any pongs');
+  coconut.stopPings();
+  t.is(onPongSpy.callCount, 0, 'no pongs were');
 });
