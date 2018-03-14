@@ -29,10 +29,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 // Inspired by
 // https://github.com/tj/axon
-
+var PING = Messages.ping();
+var PONG = Messages.pong();
 /**
  * I don't know what to call this thing if you couldn't tell.
  */
+
 var Talkie =
 /*#__PURE__*/
 function (_EventEmitter) {
@@ -40,6 +42,10 @@ function (_EventEmitter) {
 
   function Talkie() {
     var _this;
+
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {},
+        _ref$pingFrequency = _ref.pingFrequency,
+        pingFrequency = _ref$pingFrequency === void 0 ? 200 : _ref$pingFrequency;
 
     _classCallCheck(this, Talkie);
 
@@ -56,6 +62,33 @@ function (_EventEmitter) {
       delimiter: ':',
       wildcard: true
     });
+    /**
+     * @private
+     */
+
+    _this.hasReceivedPong = false;
+
+    _this.setPingFrequency(pingFrequency);
+
+    _this.sendPings = function () {
+      var loop = function loop() {
+        if (!_this.hasReceivedPong) {
+          _this.emit('this:failed-ping');
+        } else {
+          _this.emit('this:pong');
+        }
+
+        _this.send(PING);
+
+        _this.pingTimeoutId = setTimeout(loop, _this.pingFrequency);
+        _this.hasReceivedPong = false;
+      };
+
+      _this.send(PING);
+
+      _this.pingTimeoutId = setTimeout(loop, _this.pingFrequency);
+      _this.hasReceivedPong = false;
+    };
 
     var onOpen = function onOpen() {
       return _this.send(Messages.handshake(null, _this.origin));
@@ -67,9 +100,30 @@ function (_EventEmitter) {
   }
 
   _createClass(Talkie, [{
+    key: "setPingFrequency",
+    value: function setPingFrequency(value) {
+      (0, _assert.default)(Number.isFinite(value), "{number} pingFrequency, got ".concat(value));
+      this.pingFrequency = +value;
+    }
+  }, {
     key: "send",
     value: function send() {
       throw new Error('"send(data) -> void", not implemented');
+    }
+  }, {
+    key: "startPings",
+    value: function startPings() {
+      this.sendPings();
+    }
+  }, {
+    key: "stopPings",
+    value: function stopPings() {
+      clearTimeout(this.pingTimeoutId);
+    }
+  }, {
+    key: "sendResponsePing",
+    value: function sendResponsePing() {
+      this.send(PONG);
     }
     /**
      * Dispatches events for incoming and outgoing messages.
@@ -96,9 +150,16 @@ function (_EventEmitter) {
           return _this2.handleIncomingCall(message);
         } else if (message.type === 'handshake-accept') {
           return _this2.handleHandshakeAccept();
+        } else if (message.type === 'pong') {
+          _this2.hasReceivedPong = true;
+        } else if (message.type === 'handshake') {// FIXME: uhhh... what to do here...
+        } else if (message.type == 'ping') {
+          _this2.sendResponsePing();
+        } else if (message.type === 'reply') {
+          return _this2.handleIncomingReply(message);
         }
 
-        return _this2.handleIncomingReply(message);
+        return Promise.resolve();
       });
       return Promise.all(promises);
     }
@@ -106,6 +167,7 @@ function (_EventEmitter) {
     key: "handleHandshakeAccept",
     value: function handleHandshakeAccept() {
       this.api.emit('this:handshake-accept');
+      this.startPings();
       return Promise.resolve();
     }
     /**
@@ -188,13 +250,13 @@ function (_EventEmitter) {
 
       var payload = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-      var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
-          onReplyCallback = _ref.onReply,
-          onDoneCallback = _ref.onDone,
-          _ref$doneTimeout = _ref.doneTimeout,
-          doneTimeout = _ref$doneTimeout === void 0 ? Talkie.DEFAULT_DONE_TIMEOUT : _ref$doneTimeout,
-          _ref$replyTimeout = _ref.replyTimeout,
-          replyTimeout = _ref$replyTimeout === void 0 ? Talkie.DEFAULT_REPLY_TIMEOUT : _ref$replyTimeout;
+      var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
+          onReplyCallback = _ref2.onReply,
+          onDoneCallback = _ref2.onDone,
+          _ref2$doneTimeout = _ref2.doneTimeout,
+          doneTimeout = _ref2$doneTimeout === void 0 ? Talkie.DEFAULT_DONE_TIMEOUT : _ref2$doneTimeout,
+          _ref2$replyTimeout = _ref2.replyTimeout,
+          replyTimeout = _ref2$replyTimeout === void 0 ? Talkie.DEFAULT_REPLY_TIMEOUT : _ref2$replyTimeout;
 
       // TODO: Add limit option that stops listening to replies after n replies
       return new Promise(function (resolve, reject) {
@@ -209,10 +271,10 @@ function (_EventEmitter) {
           return _this4.api.off(event, onReply);
         };
 
-        var onReply = function onReply(_ref2) {
-          var data = _ref2.payload,
-              part = _ref2.part,
-              done = _ref2.done;
+        var onReply = function onReply(_ref3) {
+          var data = _ref3.payload,
+              part = _ref3.part,
+              done = _ref3.done;
           // console.log('CLEARED');
           // console.log('replyTimeoutId', replyTimeoutId)
           // console.log('clearing replyTimeoutId');
