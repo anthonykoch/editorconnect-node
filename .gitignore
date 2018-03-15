@@ -2,6 +2,7 @@
 
 .DS_Store
 /build
+/coverage.lcov
 
 # Created by https://www.gitignore.io/api/node,sublimetext,visualstudiocode
 
