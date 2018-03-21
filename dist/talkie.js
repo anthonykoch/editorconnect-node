@@ -238,8 +238,13 @@ function (_EventEmitter) {
      * @public
      * @param  {String} name - The action name
      * @param  {any} payload - the payload to send along with the action
-     * @param  {Function} options.callback - memes
-     * @param  {Number} options.timeout - How long to wait before throwing an error
+     * @param  {Function} options.onReply - Called when a reply is received
+     * @param  {Function} options.onDone - Called when the last reply is sent.
+     * @param  {Number} options.keepAlive - When true, the reply callback will continue to be called
+     *                                      even after onDone has been called.
+     * @param  {Number} options.doneTimeout -
+     * @param  {Number} options.replyTimeout - How long to wait before throwing an error after
+     *                                         a call has been sent and a reply has not be received
      * @return {Promise} - Resolves when the call is done
      */
 
@@ -253,46 +258,62 @@ function (_EventEmitter) {
       var _ref2 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {},
           onReplyCallback = _ref2.onReply,
           onDoneCallback = _ref2.onDone,
+          _ref2$keepAlive = _ref2.keepAlive,
+          keepAlive = _ref2$keepAlive === void 0 ? false : _ref2$keepAlive,
           _ref2$doneTimeout = _ref2.doneTimeout,
           doneTimeout = _ref2$doneTimeout === void 0 ? Talkie.DEFAULT_DONE_TIMEOUT : _ref2$doneTimeout,
           _ref2$replyTimeout = _ref2.replyTimeout,
           replyTimeout = _ref2$replyTimeout === void 0 ? Talkie.DEFAULT_REPLY_TIMEOUT : _ref2$replyTimeout;
 
       // TODO: Add limit option that stops listening to replies after n replies
-      return new Promise(function (resolve, reject) {
+      var call = Messages.call(name, payload, this.origin);
+      var event = "reply:".concat(call.id);
+      var _destroy = null;
+      var promise = new Promise(function (resolve, reject) {
         (0, _assert.default)(_this4.origin && _typeof(_this4.origin) === 'object', "Talkie property \"origin\" should be an object, got ".concat(_this4.origin));
+
+        _destroy = function destroy(resolveIfNotResolved) {
+          // Resolve only if we haven't already resolved
+          if (resolveIfNotResolved && !isResolved) {
+            clearTimeout(replyTimeoutId);
+            clearTimeout(doneTimeoutId);
+            resolve({
+              data: null,
+              parts: parts,
+              canceled: true
+            });
+          }
+
+          _this4.api.off(event, onReply);
+        };
+
         var parts = [];
         var replyTimeoutId = null;
         var doneTimeoutId = null;
-        var call = Messages.call(name, payload, _this4.origin);
-        var event = "reply:".concat(call.id);
-
-        var off = function off() {
-          return _this4.api.off(event, onReply);
-        };
+        var isResolved = false;
 
         var onReply = function onReply(_ref3) {
           var data = _ref3.payload,
               part = _ref3.part,
               done = _ref3.done;
-          // console.log('CLEARED');
-          // console.log('replyTimeoutId', replyTimeoutId)
-          // console.log('clearing replyTimeoutId');
           clearTimeout(replyTimeoutId);
           parts.push(data);
           replyTimeoutId = null;
 
           if (done) {
-            // console.log('clearing doneTimeoutId');
-            // console.log('doneTimeoutId', doneTimeoutId)
             clearTimeout(doneTimeoutId);
             doneTimeoutId = null;
             onDoneCallback && onDoneCallback(data, parts);
+            isResolved = true;
             resolve({
               data: data,
-              parts: parts
+              parts: parts,
+              canceled: false
             });
-            off();
+
+            if (!keepAlive) {
+              _destroy();
+            }
           } else {
             onReplyCallback && onReplyCallback(data, part);
           }
@@ -300,16 +321,16 @@ function (_EventEmitter) {
 
         if (replyTimeout >= 0 && Number.isFinite(replyTimeout)) {
           replyTimeoutId = setTimeout(function () {
-            // console.log('replyTimeoutId FIRED', replyTimeoutId)
-            off();
+            _destroy(false);
+
             reject(new Error("timeout until first reply has been exceeded, ".concat(call.id)));
           }, replyTimeout);
         }
 
         if (doneTimeout >= 0 && Number.isFinite(doneTimeout)) {
           doneTimeoutId = setTimeout(function () {
-            // console.log('doneTimeoutId', doneTimeoutId)
-            off();
+            _destroy(false);
+
             reject(new Error("timeout until done has been exceeded, ".concat(call.id)));
           }, doneTimeout);
         }
@@ -320,6 +341,13 @@ function (_EventEmitter) {
 
         _this4.api.emit('send:call', call);
       });
+      return {
+        call: call,
+        promise: promise,
+        destroy: function destroy() {
+          return _destroy(true);
+        }
+      };
     }
   }, {
     key: "origin",

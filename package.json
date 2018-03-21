@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "editorconnect-node",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Websocket call/reply messaging",
   "main": "./dist/index.js",
   "scripts": {
