@@ -12,7 +12,7 @@ const OUTGOING_ORIGIN = { id: 'outgoing' };
 
 const sleep = (time) => new Promise((resolve) => setTimeout(resolve, time));
 
-test.skip('validate(message) - validates messages conform to api', t => {
+test('validate(message) - validates messages conform to api', t => {
   t.false(Messages.isValid(null));
 
   t.false(Messages.isValid({ type: 'lime' }));
@@ -84,7 +84,7 @@ test('talkie.call(event, payload) - sends an API call', async t => {
   }
 
   const coconut = new Coconut();
-  const promise = coconut.call(EVENT_NAME, SENT_PAYLOAD);
+  const { promise } = coconut.call(EVENT_NAME, SENT_PAYLOAD);
 
   await t.throws(promise, /exceeded/, 'first reply timeout throws');
 });
@@ -111,7 +111,7 @@ test('talkie.call(event, payload) - allows awaiting a call response', async t =>
   }
 
   const coconut = new Coconut();
-  const promise = coconut.call(EVENT_NAME, PAYLOAD);
+  const { promise } = coconut.call(EVENT_NAME, PAYLOAD);
 
   t.is(typeof promise.then, 'function');
   await t.notThrows(promise);
@@ -145,7 +145,7 @@ test('talkie.call(event, payload) - await call response with multiple parts', as
   }
 
   const coconut = new Coconut();
-  const promise = coconut.call(EVENT_NAME, SENT_PAYLOAD);
+  const { promise } = coconut.call(EVENT_NAME, SENT_PAYLOAD);
 
   t.is(typeof promise.then, 'function');
 
@@ -183,7 +183,7 @@ test('talkie.call(event, payload) - onReply and done callbacks are called', asyn
 
   const coconut = new Coconut();
 
-  const promise = coconut.call('hey', {}, {
+  const { promise } = coconut.call('hey', {}, {
     onReply: onReplySpy,
     onDone: onDoneSpy,
   });
@@ -210,7 +210,7 @@ test('talkie.call(event, payload) - await call response with multiple parts', as
   }
 
   const coconut = new Coconut();
-  const promise = coconut.call();
+  const { promise } = coconut.call();
 
   await t.throws(promise, /timeout until first reply has been exceeded/);
 });
@@ -406,7 +406,7 @@ test.serial('Talkie.startPings() - starts pings and waits for the oher side to r
   t.is(onPongSpy.callCount, 4, 'pongs were emitted');
 });
 
-test.serial('Talkie.startPings() - emits failed-ping when no pongs are received', async t => {
+test('Talkie.startPings() - emits failed-ping when no pongs are received', async t => {
   t.plan(2);
 
   class Coconut extends Talkie {
@@ -432,4 +432,50 @@ test.serial('Talkie.startPings() - emits failed-ping when no pongs are received'
   t.is(failedPingSpy.callCount, 4, 'talkie has not received any pongs');
   coconut.stopPings();
   t.is(onPongSpy.callCount, 0, 'no pongs were');
+});
+
+test('Talkie#call -> Token#destroy() - stops listening to incoming calls', async t => {
+  t.plan(3);
+
+  const onReplySpy = sinon.spy();
+  const onDoneSpy = sinon.spy();
+
+  class Coconut extends Talkie {
+
+    get origin() {
+      return OUTGOING_ORIGIN;
+    }
+
+    send(call) {
+      setTimeout(() => {
+        this.dispatch([
+          Messages.reply('coconut', call, 0, false, INCOMING_ORIGIN),
+        ]);
+      }, 0);
+
+      setTimeout(() => {
+        this.dispatch([
+          Messages.reply('lime', call, 1, false, INCOMING_ORIGIN),
+          Messages.reply('water', call, 2, true, INCOMING_ORIGIN),
+        ]);
+      }, 1000);
+    }
+
+  }
+
+  const coconut = new Coconut();
+
+  const token = coconut.call('hey', {}, {
+    onReply: onReplySpy,
+    onDone: onDoneSpy,
+  });
+
+  setTimeout(() => {
+    token.destroy();
+  }, 400);
+
+  await t.notThrows(token.promise, '');
+
+  t.true(onReplySpy.calledOnce);
+  t.true(onReplySpy.calledOnce);
 });

@@ -63,7 +63,8 @@ ws.call('order-milk', { size: 'litre' });
 
 // if the call returns data, we can await the call
 (async () => {
-  const response = await ws.call('order-milk');
+  const { promise, call, destroy } = ws.call('order-milk');
+  const response = await promise;
 
   // Let's pretend data is a receipt for the order
   console.log(response.data); // { id: 1, total: '$2.99', subtotal: '$3.07', tax: '$0.08' }

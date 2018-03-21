@@ -86,8 +86,7 @@ exports.MessageParser = MessageParser;
 MessageParser.END_OF_MESSAGE = '\n';
 var CONNECTION_FAILURE = 1 << 1;
 exports.CONNECTION_FAILURE = CONNECTION_FAILURE;
-var SERVER_CLOSE = 1 << 2; // const MUTUAL = 4;
-
+var SERVER_CLOSE = 1 << 2;
 exports.SERVER_CLOSE = SERVER_CLOSE;
 
 var createSocket = function createSocket() {
@@ -124,9 +123,7 @@ function (_Talkie) {
 
     _this.setParser(parser).setUrl(url).setPrepare(prepare).setHandshakeTimeout(handshakeTimeout);
 
-    (0, _assert.default)(origin && typeof origin.id === 'string' && origin.id.length > 0, "{string} origin.id(min:1), got ".concat(origin)); // this.retry = Number(retry);
-    // this.failedConnection = false;
-
+    (0, _assert.default)(origin && typeof origin.id === 'string' && origin.id.length > 0, "{string} origin.id(min:1), got ".concat(origin));
     Object.defineProperty(_assertThisInitialized(_this), 'origin', {
       enumerable: true,
       configurable: true,
